@@ -1,0 +1,13 @@
+=====================
+       Naming
+=====================
+Functions
+ - Casual: PascalCase()
+ - Private: snake_case() or posixstyle()
+
+Variables:
+ - camelCase
+
+Structs and enums:
+ - Name: PascalCase
+ - Field: camelCase

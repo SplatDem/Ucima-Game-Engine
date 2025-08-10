@@ -1,0 +1,8 @@
+[
+  {
+    "directory": "/home/splatdem/Public/ucima/",
+    "command": "/usr/bin/clang -I./engine/src/ -I./testapp/src/ -c testapp/src/main.c",
+    "file": "main.c"
+  }
+]
+

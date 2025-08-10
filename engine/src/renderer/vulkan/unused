@@ -1,0 +1,78 @@
+// b8 InitVulkanRendererBackend(RendererBackend *backend, const char *appName, struct PlatformState *pState) {
+// 
+//   RUNTIMEMESSAGE("TODO: Custom vulkan allocator");
+//   context.allocator = 0;
+// 
+//   VkApplicationInfo appInfo = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
+//   appInfo.apiVersion = VK_API_VERSION_1_2;
+//   appInfo.pApplicationName = appName;
+//   appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+//   appInfo.pEngineName = "Ucima Engine";
+//   appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+// 
+//   VkInstanceCreateInfo createInfo = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+//   createInfo.pApplicationInfo = &appInfo;
+// 
+//   const char **requiredExtensions = da_init(const char *);
+//   da_push(requiredExtensions, &VK_KHR_SURFACE_EXTENSION_NAME);
+//   PlatformGetRequiredExtensionNames(&requiredExtensions);
+// 
+// #if defined (_DEBUG)
+//   da_push(requiredExtensions, &VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+// 
+//   S_TraceLogInfo("Required extensions:");
+//   u32 len = da_length(requiredExtensions);
+//   for (u32 i = 0; i < len; ++i)
+//     S_TraceLogInfo("%s", requiredExtensions[i]); //Segfault
+// #endif
+// 
+//   createInfo.enabledExtensionCount = da_length(requiredExtensions);
+//   createInfo.ppEnabledExtensionNames = requiredExtensions;
+// 
+//   // Validation layers
+//   const char **requiredValidationLayerNames = 0;
+//   u32 requiredValidationLayersCount = 0;
+// 
+// #if defined (_DEBUG)
+//   
+//   S_TraceLogInfo("Validation layers enabled. Enumeraing...");
+// 
+//   requiredValidationLayerNames = da_init(const char *);
+//   da_push(requiredValidationLayerNames, &"VK_LAYER_KHRONOS_validation");
+//   requiredValidationLayersCount = da_length(requiredValidationLayerNames);
+// 
+//   u32 availableLayerCount = 0;
+//   VK_CHECK(vkEnumerateInstanceLayerProperties(&availableLayerCount, 0));
+//   VkLayerProperties *availableLayers = da_reserve(VkLayerProperties, availableLayerCount);
+//   VK_CHECK(vkEnumerateInstanceLayerProperties(&availableLayerCount, availableLayers));
+// 
+//   for (u32 i = 0; i < requiredValidationLayersCount; ++i) {
+//     S_TraceLogInfo("Searching for layer: %s...", requiredValidationLayerNames[i]);
+//     b8 found = FALSE;
+//     for (u32 j = 0; j < availableLayerCount; ++j) {
+//       if (ustrcmp(requiredValidationLayerNames[i], availableLayers[j].layerName)) {
+//         found = TRUE;
+//         S_TraceLogInfo("Found");
+//         break;
+//       }
+//     }
+//     if (!found) {
+//       S_TraceLogError("Missing required validation layer: %s", requiredValidationLayerNames[i]);
+//       return FALSE;
+//     }
+//   }
+// 
+//   S_TraceLogInfo("All required validation layers are present");
+//   
+// #endif
+// 
+//   createInfo.enabledLayerCount = requiredValidationLayersCount;
+//   createInfo.ppEnabledLayerNames = requiredValidationLayerNames;
+// 
+//   ERRORLETTER
+//   VK_CHECK(vkCreateInstance(&createInfo, context.allocator, &context.instance));
+//   S_TraceLogInfo("Vulkan instance created successfuly");
+// 
+//   S_TraceLogInfo("Vulkan renderer initialized successfuly");
+//   return TRUE;
+// }

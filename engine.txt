@@ -1,0 +1,30 @@
+=================================
+Engine architecture and ecosystem
+=================================
+
+            CORE
+    ucima (engine by itself)
+    |  libucima.so/dll   |
+    |                    V
+    |                  Editor (use libucima)
+    V                    -
+   Game <----------------/
+ (alse use libucima)
+
+=================================
+Platform layer
+=================================
+   /-- platform.h --\
+   |       |        |
+ linux  windows   macos      [{android IOS} probably]
+   |       |        |
+   |       |        |
+   |       |        |
+   |       | platform_macos.c
+   |  platform_win32.c
+platform_linux.c
+
+=================================
+Memory sybsystem
+=================================
+Custom crossplatform memory allocator and tracer
