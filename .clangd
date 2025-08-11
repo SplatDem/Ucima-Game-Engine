@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [ "-I./engine/src", "-I./testapp/src/", "-Wall" ]

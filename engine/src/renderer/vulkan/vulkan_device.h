@@ -5,7 +5,9 @@
 BOOLEAN VulkanCreateDevice(VulkanContext *context);
 void VulkanDestroyDevice(VulkanContext *context);
 
-void VulkanDeviceSwapchainSupport(
+void VulkanDeviceQuerySwapchainSupport(
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
     VulkanSwapchainSupportInfo *outSupportInfo);
+
+BOOLEAN VulkanDeviceDetectDepthFormat(VulkanDevice *device);

@@ -146,13 +146,13 @@ void VulkanDestroyDevice(VulkanContext *context) {
   context->device.transferQueueIndex = -1;
 }
 
-void VulkanDeviceSwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VulkanSwapchainSupportInfo *outSupportInfo) {
+void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VulkanSwapchainSupportInfo *outSupportInfo) {
   VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &outSupportInfo->capabilities));
 
   VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &outSupportInfo->formatCount, 0));
 
   if (outSupportInfo->formatCount != 0) {
-    if (outSupportInfo->formats)
+    if (!outSupportInfo->formats)
       outSupportInfo->formats = ualloc(sizeof(VkSurfaceFormatKHR) * outSupportInfo->formatCount, MEMORY_CATEGORY_RENDERER);
     VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &outSupportInfo->formatCount, outSupportInfo->formats));
   }
@@ -164,6 +164,28 @@ void VulkanDeviceSwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR 
       outSupportInfo->presentMode = ualloc(sizeof(VkPresentModeKHR) * outSupportInfo->presentModeCount, MEMORY_CATEGORY_RENDERER);
     VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &outSupportInfo->presentModeCount, outSupportInfo->presentMode));
   }
+}
+
+BOOLEAN VulkanDeviceDetectDepthFormat(VulkanDevice *device) {
+  const u64 candidatesCount = 3;
+  VkFormat candidates[3] = {
+    VK_FORMAT_D32_SFLOAT,
+    VK_FORMAT_D32_SFLOAT_S8_UINT,
+    VK_FORMAT_D24_UNORM_S8_UINT
+  };
+  u32 flags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+  for (u64 i = 0; i < candidatesCount; ++i) {
+    VkFormatProperties properties;
+    vkGetPhysicalDeviceFormatProperties(device->physicalDevice, candidates[i], &properties);
+    if (properties.linearTilingFeatures & flags) {
+      device->depthFormat = candidates[i];
+      return TRUE;
+    } else if ((properties.optimalTilingFeatures & flags) == flags) {
+      device->depthFormat = candidates[i];
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 BOOLEAN SelectPhysicalDevice(VulkanContext *context) {
@@ -343,7 +365,7 @@ BOOLEAN PhysicalDeviceMeetsRequirements(
     S_TraceLogInfo("Transfer Family Index: %i", outQueueFamilyInfo->transferFamilyIndex);
     S_TraceLogInfo("Compute Family Index:  %i", outQueueFamilyInfo->computeFamilyIndex);
 
-    VulkanDeviceSwapchainSupport(device, surface, outSwapchainSupport);
+    VulkanDeviceQuerySwapchainSupport(device, surface, outSwapchainSupport);
 
     if (outSwapchainSupport->formatCount < 1 || outSwapchainSupport->presentModeCount < 1) {
       if (outSwapchainSupport->formats)

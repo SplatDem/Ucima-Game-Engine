@@ -10,15 +10,6 @@
     UASSERT(expr == VK_SUCCESS); \
   }
 
-//       context->device.physicalDevice = physicalDevices[i];
-//       context->device.graphicsQueueIndex = queueInfo.graphicsFamilyIndex;
-//       context->device.presentQueueIndex = queueInfo.presentFamilyIndex;
-//       context->device.transferQueueIndex = queueInfo.transferFamilyIndex;
-// 
-//       context->device.properties = properties;
-//       context->device.features = features;
-//       context->device.memory = memory;
-
 typedef struct VulkanSwapchainSupportInfo {
   VkSurfaceCapabilitiesKHR capabilities;
   u32 formatCount;
@@ -40,7 +31,26 @@ typedef struct VulkanDevice {
   VkPhysicalDeviceProperties properties;
   VkPhysicalDeviceFeatures features;
   VkPhysicalDeviceMemoryProperties memory;
+  VkFormat depthFormat;
 } VulkanDevice;
+
+typedef struct VulkanImage {
+  VkImage handle;
+  VkDeviceMemory memory;
+  VkImageView view;
+  u32 width;
+  u32 height;
+} VulkanImage;
+
+typedef struct VulkanSwapchain {
+  VkSurfaceFormatKHR imageFormat;
+  u8 maxFramesInFlight;
+  VkSwapchainKHR handle;
+  u32 imageCount;
+  VkImage *images;
+  VkImageView *views;
+  VulkanImage depthAttachment;
+} VulkanSwapchain;
 
 typedef struct VulkanContext {
   // Custom Vulkan allocator
@@ -51,4 +61,15 @@ typedef struct VulkanContext {
 
   // Both physical and logical devices
   VulkanDevice device;
+
+  VulkanSwapchain swapchain;
+  u32 imageIndex;
+  u32 currentFrame;
+  BOOLEAN recreatingSwapchain;
+
+  // Framebuffer size for swapchain
+  u32 framebufferWidth;
+  u32 framebufferHeight;
+
+  i32 (*FindMemoryIndex)(u32 typeFilter, u32 propertyFlags);
 } VulkanContext;

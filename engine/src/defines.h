@@ -168,63 +168,6 @@ typedef char b8;
 #    define U_HOT_RELOAD 0
 #endif
 
-#if defined (STYPES_INCLUDE_DYNAMIC_ARRAY)
-
-typedef struct {
-  void *data;
-  size_t size;
-  size_t capacity;
-  size_t elementSize;
-} DynamicArray;
-
-void S_DynamicArrayInit(DynamicArray *array, size_t elementSize, size_t initCapacity);
-void S_DynamicArrayFree(DynamicArray *array);
-void S_DynamicArrayAppend(DynamicArray *array, const void *value);
-void *S_DynamicArrayGetElement(DynamicArray *array, size_t index);
-
-#if defined (STYPES_DA_IMPLEMENTATION)
-
-void S_DynamicArrayInit(DynamicArray *array, size_t elementSize, size_t initialCapacity) {
-    array->data = malloc(initialCapacity * elementSize);
-    if (!array->data) {
-        puts(ERROR "Failed to allocate memory for a dynamic array");
-        exit(EXIT_FAILURE);
-    }
-    array->size = 0;
-    array->capacity = initialCapacity;
-    array->elementSize = elementSize;
-}
-
-void S_DynamicArrayFree(DynamicArray *array) {
-  free(array->data);
-  array->size = array->capacity = 0;
-}
-
-void S_DynamicArrayAppend(DynamicArray *array, const void *value) {
-    if (array->size >= array->capacity) {
-        size_t newCapacity = (array->capacity == 0) ? 1 : array->capacity * 2;
-        void *newData = realloc(array->data, newCapacity * array->elementSize);
-        if (!newData) {
-            puts(ERROR "Failed to reallocate memory for a dynamic array");
-            exit(EXIT_FAILURE);
-        }
-        array->data = newData;
-        array->capacity = newCapacity;
-    }
-    memcpy((char*)array->data + array->size * array->elementSize, value, array->elementSize);
-    array->size++;
-}
-
-void *S_DynamicArrayGetElement(DynamicArray *array, size_t index) {
-  if (index >= array->size) {
-      puts(ERROR "Index out of bounds\n");
-      exit(EXIT_FAILURE);
-  }
-  return (char*)array->data + index * array->elementSize;
-}
-
-#endif
-
-#endif
+#define UCLAMP(value, min, max) (value <= min) ? min : (value >= max) ? max : value;
 
 #endif

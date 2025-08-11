@@ -1,6 +1,7 @@
 #include "vulkan_backend.h"
 #include "defines.h"
 #include "core/ustring.h"
+#include "vulkan_swapchain.h"
 #include "vulkan_types.inl"
 #include "vulkan_device.h"
 #include "containers/darray.h"
@@ -13,8 +14,13 @@ static VulkanContext context;
 
 #define MAX_REQUIRED_EXTENSIONS 16
 
+i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags);
+
 BOOLEAN InitVulkanRendererBackend(RendererBackend* backend, const char* appName, struct PlatformState* pState) {
   RUNTIMEMESSAGE("\x1b[35mIMPORTANT TODO: Use dynamic arrays\x1b[0m");
+
+  context.FindMemoryIndex = FindMemoryIndex;
+
   RUNTIMEMESSAGE("TODO: Custom vulkan allocator");
   context.allocator = 0;
 
@@ -123,12 +129,20 @@ BOOLEAN InitVulkanRendererBackend(RendererBackend* backend, const char* appName,
     return FALSE;
   }
 
+  // Swapchain
+  VulkanCreateSwapchain(
+      &context,
+      context.framebufferWidth,
+      context.framebufferHeight,
+      &context.swapchain);
+
   S_TraceLogDebug("Vulkan renderer initialized successfully");
   return TRUE;
 }
 
 void DestroyVulkanRendererBackend(RendererBackend *backend) {
   RUNTIMEMESSAGE("TODO: Destroy debugger");
+  VulkanDestroySwapchain(&context, &context.swapchain);
   VulkanDestroyDevice(&context);
   vkDestroySurfaceKHR(context.instance, context.surface, context.allocator);
   vkDestroyInstance(context.instance, context.allocator);
@@ -142,4 +156,17 @@ BOOLEAN VulkanRendererBeginFrame(RendererBackend *backend, f32 deltaTime) {
 
 BOOLEAN VulkanRendererEndFrame(RendererBackend *backend, f32 deltaTime) {
   return TRUE;
+}
+
+i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags) {
+  VkPhysicalDeviceMemoryProperties memProp;
+  vkGetPhysicalDeviceMemoryProperties(context.device.physicalDevice, &memProp);
+
+  for (u32 i = 0; i < memProp.memoryTypeCount; ++i) {
+    if (typeFilter & (1 << i) && (memProp.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags)
+      return i;
+  }
+
+  S_TraceLogWarn("Failed to find suitable memory type");
+  return -1;
 }
