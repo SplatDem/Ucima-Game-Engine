@@ -93,6 +93,8 @@ void VulkanSwapchainPresent(
     VulkanRecreateSwapchain(context, context->framebufferWidth, context->framebufferHeight, swapchain);
   else if (result != VK_SUCCESS)
     S_TraceLogError("Failed to present swapchain image");
+
+  context->currentFrame = (context->currentFrame + 1) % swapchain->maxFramesInFlight;
 }
 
 void create(

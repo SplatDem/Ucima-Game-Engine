@@ -93,8 +93,6 @@ void VulkanCreateRenderpass(
         &renderPassCreateInfo,
         context->allocator,
         &outRenderpass->handle));
-
-  S_TraceLogDebug("Vulkan renderpass created successfuly");
 }
 
 void VulkanDestroyRenderpass(

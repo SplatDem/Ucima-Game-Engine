@@ -61,6 +61,13 @@ typedef struct VulkanRenderpass {
   VulkanRenderpassState state;
 } VulkanRenderpass;
 
+typedef struct VulkanFramebuffer {
+  VkFramebuffer handle;
+  u32 attachmentCount;
+  VkImageView *attachments;
+  VulkanRenderpass *renderpass;
+} VulkanFramebuffer;
+
 typedef struct VulkanSwapchain {
   VkSurfaceFormatKHR imageFormat;
   u8 maxFramesInFlight;
@@ -69,6 +76,7 @@ typedef struct VulkanSwapchain {
   VkImage *images;
   VkImageView *views;
   VulkanImage depthAttachment;
+  VulkanFramebuffer *framebuffers;
 } VulkanSwapchain;
 
 typedef enum VulkanCommandBufferState {
@@ -85,6 +93,11 @@ typedef struct VulkanCommandBuffer {
   VulkanCommandBufferState state;
 } VulkanCommandBuffer;
 
+typedef struct VulkanFence {
+  VkFence handle;
+  BOOLEAN isSignaled;
+} VulkanFence;
+
 typedef struct VulkanContext {
   // Custom Vulkan allocator
   VkAllocationCallbacks *allocator;
@@ -95,7 +108,14 @@ typedef struct VulkanContext {
   // Both physical and logical devices
   VulkanDevice device;
 
+  // Swapchain and other image processing
   VulkanSwapchain swapchain;
+
+  u32 inFlightFenceCount;
+  VkSemaphore *imageAvailableSemaphores;
+  VkSemaphore *queueCompleteSemaphores;
+  VulkanFence *inFlightFences;
+  VulkanFence **imagesInFlight;
   u32 imageIndex;
   u32 currentFrame;
   BOOLEAN recreatingSwapchain;

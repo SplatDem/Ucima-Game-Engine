@@ -147,6 +147,11 @@ BOOLEAN AppRun() {
   return TRUE;
 }
 
+void AppGetFramebufferSize(u32 *width, u32 *height) {
+  *width = appState.width;
+  *height = appState.height;
+}
+
 // TODO: make callback function
 BOOLEAN appOnEvent(u16 code, void *sender, void *listenerInst, EventContext context) {
   switch (code) {

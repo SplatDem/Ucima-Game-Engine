@@ -16,3 +16,4 @@ typedef struct AppConfig {
 
 UAPI BOOLEAN AppCreate(struct Game *gameInst);
 UAPI BOOLEAN AppRun();
+void AppGetFramebufferSize(u32 *width, u32 *height);
