@@ -112,10 +112,23 @@ BOOLEAN VulkanCreateDevice(VulkanContext *context) {
       &context->device.transferQueue);
   S_TraceLogInfo("Queues obtained");
 
+  VkCommandPoolCreateInfo poolCreateInfo = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+  poolCreateInfo.queueFamilyIndex = context->device.graphicsQueueIndex;
+  poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+  VK_CHECK(vkCreateCommandPool(context->device.device, &poolCreateInfo, context->allocator, &context->device.graphicsCommandPool));
+
+  S_TraceLogInfo("Graphics command pool created successfuly");
+
   return TRUE;
 }
 
 void VulkanDestroyDevice(VulkanContext *context) {
+  vkDestroyCommandPool(
+      context->device.device,
+      context->device.graphicsCommandPool,
+      context->allocator);
+
   context->device.graphicsQueue = 0;
   context->device.presentQueue = 0;
   context->device.transferQueue = 0;

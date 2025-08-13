@@ -3,7 +3,6 @@
 #include <defines.h>
 
 b8 GameInitialize(Game *gameInst) {
-  RUNTIMEMESSAGE("TODO: This file");
   return TRUE;
 }
 

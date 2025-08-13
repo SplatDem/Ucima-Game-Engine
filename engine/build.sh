@@ -9,7 +9,7 @@ echo -e "\e[32mFiles to build in engine:\n$cFilenames\e[0m"
 
 CC=clang
 bin="ucima"
-CCFlags="-g -shared -fdeclspec -fPIC"
+CCFlags="-g -shared -fdeclspec -fPIC -O2"
 INCLUDEFlags="-I./src"
 LDFlags="-lvulkan -lxcb -lX11 -lX11-xcb"
 defines="-DUEXPORT"

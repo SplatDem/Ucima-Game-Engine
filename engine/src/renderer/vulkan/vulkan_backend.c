@@ -1,20 +1,26 @@
-#include "vulkan_backend.h"
 #include "defines.h"
+#include "containers/darray.h"
+#include "core/umemory.h"
 #include "core/ustring.h"
+
+#include "vulkan_backend.h"
+#include "vulkan_platform.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_types.inl"
 #include "vulkan_device.h"
-#include "containers/darray.h"
-#include "vulkan_platform.h"
+#include "vulkan_renderpass.h"
+#include "vulkan_command_buffer.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <vulkan/vulkan_core.h>
 
 static VulkanContext context;
 
 #define MAX_REQUIRED_EXTENSIONS 16
 
 i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags);
+
+void CreateCommandBuffer(RendererBackend *backend);
 
 BOOLEAN InitVulkanRendererBackend(RendererBackend* backend, const char* appName, struct PlatformState* pState) {
   RUNTIMEMESSAGE("\x1b[35mIMPORTANT TODO: Use dynamic arrays\x1b[0m");
@@ -136,12 +142,35 @@ BOOLEAN InitVulkanRendererBackend(RendererBackend* backend, const char* appName,
       context.framebufferHeight,
       &context.swapchain);
 
+  // Starting from x = 0; y = 0;
+  VulkanCreateRenderpass(
+      &context,
+      &context.mainRenderpass,
+      0, 0, context.framebufferWidth, context.framebufferHeight,
+      0.0f, 0.0f, 0.2f, 1.0f,
+      1.0f,
+      0);
+
+  CreateCommandBuffer(backend);
+
   S_TraceLogDebug("Vulkan renderer initialized successfully");
   return TRUE;
 }
 
 void DestroyVulkanRendererBackend(RendererBackend *backend) {
-  RUNTIMEMESSAGE("TODO: Destroy debugger");
+  for (u32 i = 0; i < context.swapchain.imageCount; ++i) {
+    if (context.graphicsCommandBuffers[i].handle) {
+      VulkanFreeCommandBuffer(
+          &context,
+          context.device.graphicsCommandPool,
+          &context.graphicsCommandBuffers[i]);
+      context.graphicsCommandBuffers[i].handle = 0;
+    }
+  }
+  da_destroy(context.graphicsCommandBuffers);
+  context.graphicsCommandBuffers = 0;
+
+  VulkanDestroyRenderpass(&context, &context.mainRenderpass);
   VulkanDestroySwapchain(&context, &context.swapchain);
   VulkanDestroyDevice(&context);
   vkDestroySurfaceKHR(context.instance, context.surface, context.allocator);
@@ -169,4 +198,19 @@ i32 FindMemoryIndex(u32 typeFilter, u32 propertyFlags) {
 
   S_TraceLogWarn("Failed to find suitable memory type");
   return -1;
+}
+
+void CreateCommandBuffer(RendererBackend *backend) {
+  if (!context.graphicsCommandBuffers) {
+    context.graphicsCommandBuffers = da_reserve(VulkanCommandBuffer, context.swapchain.imageCount);
+    for (u32 i = 0; i < context.swapchain.imageCount; ++i)
+      uzeromem(&context.graphicsCommandBuffers[i], sizeof(VulkanCommandBuffer));
+  }
+
+  for (u32 i = 0; i < context.swapchain.imageCount; ++i) {
+    if (context.graphicsCommandBuffers[i].handle)
+      VulkanFreeCommandBuffer(&context, context.device.graphicsCommandPool, &context.graphicsCommandBuffers[i]);
+    uzeromem(&context.graphicsCommandBuffers[i], sizeof(VulkanCommandBuffer));
+    VulkanAllocateCommandBuffer(&context, context.device.graphicsCommandPool, TRUE, &context.graphicsCommandBuffers[i]);
+  }
 }

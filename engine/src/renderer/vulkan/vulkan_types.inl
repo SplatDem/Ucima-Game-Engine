@@ -28,6 +28,7 @@ typedef struct VulkanDevice {
   VkQueue graphicsQueue;
   VkQueue presentQueue;
   VkQueue transferQueue;
+  VkCommandPool graphicsCommandPool;
   VkPhysicalDeviceProperties properties;
   VkPhysicalDeviceFeatures features;
   VkPhysicalDeviceMemoryProperties memory;
@@ -42,6 +43,24 @@ typedef struct VulkanImage {
   u32 height;
 } VulkanImage;
 
+typedef enum VulkanRenderpassState {
+  READY,
+  RECORDING,
+  IN_RENDER_PASS,
+  RECORDING_ENDED,
+  SUBMITTED,
+  NOT_ALLOCATED
+} VulkanRenderpassState;
+
+typedef struct VulkanRenderpass {
+  VkRenderPass handle;
+  f32 x, y, w, h;
+  f32 r, g, b, a;
+  f32 depth;
+  u32 stencil;
+  VulkanRenderpassState state;
+} VulkanRenderpass;
+
 typedef struct VulkanSwapchain {
   VkSurfaceFormatKHR imageFormat;
   u8 maxFramesInFlight;
@@ -51,6 +70,20 @@ typedef struct VulkanSwapchain {
   VkImageView *views;
   VulkanImage depthAttachment;
 } VulkanSwapchain;
+
+typedef enum VulkanCommandBufferState {
+  COMMAND_BUFFER_STATE_READY,
+  COMMAND_BUFFER_STATE_RECORDING,
+  COMMAND_BUFFER_STATE_IN_RENDER_PASS,
+  COMMAND_BUFFER_STATE_RECORDING_ENDED,
+  COMMAND_BUFFER_STATE_SUBMITTED,
+  COMMAND_BUFFER_STATE_NOT_ALLOCATED
+} VulkanCommandBufferState;
+
+typedef struct VulkanCommandBuffer {
+  VkCommandBuffer handle;
+  VulkanCommandBufferState state;
+} VulkanCommandBuffer;
 
 typedef struct VulkanContext {
   // Custom Vulkan allocator
@@ -66,6 +99,10 @@ typedef struct VulkanContext {
   u32 imageIndex;
   u32 currentFrame;
   BOOLEAN recreatingSwapchain;
+
+  VulkanRenderpass mainRenderpass;
+
+  VulkanCommandBuffer *graphicsCommandBuffers;
 
   // Framebuffer size for swapchain
   u32 framebufferWidth;
