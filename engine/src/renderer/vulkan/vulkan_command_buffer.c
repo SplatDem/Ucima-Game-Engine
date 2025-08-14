@@ -57,7 +57,7 @@ void VulkanEndCommandBuffer(VulkanCommandBuffer *commandBuffer)
   commandBuffer->state = COMMAND_BUFFER_STATE_RECORDING_ENDED;
 }
 
-void VulkanUpdateCommandBufferSubmitted(VulkanCommandBuffer *commandBuffer)
+void VulkanCommandBufferUpdateSubmitted(VulkanCommandBuffer *commandBuffer)
 {
   commandBuffer->state = COMMAND_BUFFER_STATE_SUBMITTED;
 }

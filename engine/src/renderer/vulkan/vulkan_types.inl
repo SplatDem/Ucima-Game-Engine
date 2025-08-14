@@ -128,5 +128,8 @@ typedef struct VulkanContext {
   u32 framebufferWidth;
   u32 framebufferHeight;
 
+  u64 framebufferSizeGeneration;
+  u64 framebufferSizeLastGeneration;
+
   i32 (*FindMemoryIndex)(u32 typeFilter, u32 propertyFlags);
 } VulkanContext;

@@ -1,4 +1,4 @@
-#include "renderer/renderer_types.inl"
+#include "renderer/vulkan/vulkan_backend.h"
 #include "renderer_backend.h"
 #include "renderer_frontend.h"
 #include "core/umemory.h"
@@ -34,6 +34,13 @@ b8 RendererEndFrame(f32 deltaTime) {
   b8 result = backend->EndFrame(backend, deltaTime);
   backend->frameNumber++;
   return result;
+}
+
+void RendererOnResize(u16 width, u16 height) {
+  if (backend)
+    backend->Resize(backend, width, height);
+  else
+    S_TraceLogWarn("Renderer backend doesn't exist to accept resize");
 }
 
 BOOLEAN RendererDrawFrame(RenderPacket *packet) {

@@ -22,6 +22,6 @@ void VulkanBeginCommandBuffer(
 
 void VulkanEndCommandBuffer(VulkanCommandBuffer *commandBuffer);
 
-void VulkanUpdateCommandBufferSubmitted(VulkanCommandBuffer *commandBuffer);
+void VulkanCommandBufferUpdateSubmitted(VulkanCommandBuffer *commandBuffer);
 
 void VulkanResetCommandBuffer(VulkanCommandBuffer *commandBuffer);

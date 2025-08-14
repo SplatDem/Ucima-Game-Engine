@@ -13,8 +13,8 @@ BOOLEAN InitRendererBackend(
   if (type == RENDERER_BACKEND_TYPE_VULKAN) {
     outRendererBackend->Init = InitVulkanRendererBackend;
     outRendererBackend->Destroy = DestroyVulkanRendererBackend;
-    outRendererBackend->BeginFrame = VulkanRendererBeginFrame;
-    outRendererBackend->EndFrame = VulkanRendererEndFrame;
+    outRendererBackend->BeginFrame = VulkanRendererBackendBeginFrame;
+    outRendererBackend->EndFrame = VulkanRendererBackendEndFrame;
     outRendererBackend->Resize = VulkanRendererOnResize;
     return TRUE;
   }

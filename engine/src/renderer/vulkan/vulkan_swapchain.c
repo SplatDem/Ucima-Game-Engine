@@ -59,7 +59,6 @@ BOOLEAN VulkanSwapchainAcquireNextImageIndex(
       fence,
       outImageIndex);
 
-
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     VulkanRecreateSwapchain(context, context->framebufferWidth, context->framebufferHeight, swapchain);
     return FALSE;
@@ -228,6 +227,7 @@ void create(
 }
 
 void destroy(VulkanContext *context, VulkanSwapchain *swapchain) {
+  vkDeviceWaitIdle(context->device.device);
   VulkanDestroyImage(context, &swapchain->depthAttachment);
   for (u32 i = 0; i < swapchain->imageCount; ++i)
     vkDestroyImageView(context->device.device, swapchain->views[i], context->allocator);

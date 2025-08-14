@@ -27,6 +27,7 @@ static AppState appState;
 
 BOOLEAN appOnEvent(u16 code, void *sender, void *listenerInst, EventContext context);
 BOOLEAN appOnKey(u16 code, void *sender, void *listenerInst, EventContext context);
+BOOLEAN appOnResize(u16 code, void *sender, void *listenerInst, EventContext context);
 
 BOOLEAN AppCreate(Game *gameInst) {
   if (initialized) {
@@ -66,6 +67,7 @@ BOOLEAN AppCreate(Game *gameInst) {
   RegisterEvent(EVENT_CODE_APPLICATION_QUIT, 0, appOnEvent);
   RegisterEvent(EVENT_CODE_KEY_PRESSED, 0, appOnEvent);
   RegisterEvent(EVENT_CODE_KEY_RELEASED, 0, appOnEvent);
+  RegisterEvent(EVENT_CODE_WINDOW_RESIZED, 0,  appOnResize);
 
   if (!appState.gameInst->initialize(appState.gameInst)) {
     S_TraceLogError("Failed to initialize game");
@@ -178,6 +180,33 @@ BOOLEAN appOnKey(u16 code, void *sender, void *listenerInst, EventContext contex
   } else if (code == EVENT_CODE_KEY_RELEASED) {
     u16 keyCode = context.data.u16[0];
     S_TraceLogInfo("'%c' key released in window", keyCode);
+  }
+
+  return FALSE;
+}
+
+BOOLEAN appOnResize(u16 code, void *sender, void *listenerInst, EventContext context) {
+  if (code == EVENT_CODE_WINDOW_RESIZED) {
+    u16 width = context.data.u16[0];
+    u16 height = context.data.u16[1];
+
+    if (width != appState.width || height != appState.height) {
+      appState.width = width;
+      appState.height = height;
+      S_TraceLogDebug("Window resized: %i, %i", width, height);
+      if (width == 0 || height == 0) {
+        S_TraceLogInfo("Window minimized, suspending application");
+        appState.suspend = TRUE;
+        return TRUE;
+      } else {
+        if (appState.suspend) {
+          S_TraceLogInfo("Window restored, resuming application");
+          appState.suspend = FALSE;
+        }
+        appState.gameInst->onResize(appState.gameInst, width, height);
+        RendererOnResize(width, height);
+      }
+    }
   }
 
   return FALSE;

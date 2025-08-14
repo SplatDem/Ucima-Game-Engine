@@ -1,2 +1,4 @@
 Event multithreading and priority system
 Windows input system
+
+Fix fucking error, where the semaphores that has been signaled by queue used by swapchain

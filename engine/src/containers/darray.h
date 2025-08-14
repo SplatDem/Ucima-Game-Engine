@@ -55,7 +55,7 @@ UAPI void *_da_insert(void *array, u64 index, void *valuePtr);
   _da_get_field(array, DARRAY_CAPACITY)
 
 #define da_length(array) \
-  _da_get_field(array, DARRAY_LENGTH);
+  _da_get_field(array, DARRAY_LENGTH)
 
 #define da_stride(array) \
   _da_get_field(array, DARRAY_STRIDE)

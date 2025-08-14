@@ -172,6 +172,11 @@ b8 PlatformPollEvent(PlatformState  *platformState) {
       } break;
 
       case XCB_CONFIGURE_NOTIFY: {
+        xcb_configure_notify_event_t *configureEvent = (xcb_configure_notify_event_t *)event;
+        EventContext context;
+        context.data.u16[0] = configureEvent->width;
+        context.data.u16[1] = configureEvent->height;
+        FireEvent(EVENT_CODE_WINDOW_RESIZED, 0, context);
       } break;
 
       case XCB_CLIENT_MESSAGE: {
