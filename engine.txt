@@ -28,3 +28,8 @@ platform_linux.c
 Memory sybsystem
 =================================
 Custom crossplatform memory allocator and tracer
+
+=================================
+Renderer backend
+=================================
+Vulkan OpenGL DirectX11/12 Metal
