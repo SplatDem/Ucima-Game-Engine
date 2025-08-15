@@ -1,8 +1,7 @@
 #include "renderer_backend.h"
 #include "renderer/vulkan/vulkan_backend.h"
-#include "defines.h"
+#include "renderer/opengl/opengl_backend.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 BOOLEAN InitRendererBackend(
     RendererBackendType type,
@@ -22,12 +21,11 @@ BOOLEAN InitRendererBackend(
   } else if (type == RENDERER_BACKEND_TYPE_OPENGL) {
     S_TraceLogInfo("Renderer backend: OpenGL");
     RUNTIMEMESSAGE("TODO: OpenGL renderer backend");
-    exit(EXIT_FAILURE);
-    outRendererBackend->Init = 0;
-    outRendererBackend->Destroy = 0;
-    outRendererBackend->BeginFrame = 0;
-    outRendererBackend->EndFrame = 0;
-    outRendererBackend->Resize = 0;
+    outRendererBackend->Init = InitOpenGLRendererBackend;
+    outRendererBackend->Destroy = DestroyOpenGLRendererBackend;
+    outRendererBackend->BeginFrame = OpenGLRendererBackendBeginFrame;
+    outRendererBackend->EndFrame = OpenGLRendererBackendEndFrame;
+    outRendererBackend->Resize = OpenGLRendererOnResize;
     return TRUE;
   }
 

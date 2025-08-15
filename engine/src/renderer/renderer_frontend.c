@@ -14,9 +14,8 @@ BOOLEAN InitRenderer(const char *appName, struct PlatformState *pState) {
   InitRendererBackend(RENDERER_BACKEND_TYPE_OPENGL, pState, backend);
   backend->frameNumber = 0;
 
-  if (!backend->Init(backend, appName, pState)) {
+  if (!backend->Init(backend, appName, pState))
     S_TraceLogError("Failed to init renderer backend");
-  }
 
   return TRUE;
 }
