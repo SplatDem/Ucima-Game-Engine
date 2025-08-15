@@ -11,7 +11,7 @@ static RendererBackend *backend = 0;
 BOOLEAN InitRenderer(const char *appName, struct PlatformState *pState) {
   backend = ualloc(sizeof(RendererBackend), MEMORY_CATEGORY_RENDERER);
   
-  InitRendererBackend(RENDERER_BACKEND_TYPE_VULKAN, pState, backend);
+  InitRendererBackend(RENDERER_BACKEND_TYPE_OPENGL, pState, backend);
   backend->frameNumber = 0;
 
   if (!backend->Init(backend, appName, pState)) {

@@ -290,7 +290,7 @@ BOOLEAN VulkanRendererBackendBeginFrame(RendererBackend *backend, f32 deltaTime)
 
   if (!VulkanWaitFence(
         &context,
-        &context.inFlightFences[context.currentFrame],
+        &context.inFlightFences[context.imageIndex],
         UINT64_MAX)) 
   {
     // S_TraceLogWarn("Failed to wait fences In-flight");
