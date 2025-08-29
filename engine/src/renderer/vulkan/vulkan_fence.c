@@ -32,8 +32,8 @@ BOOLEAN VulkanWaitFence(VulkanContext *context, VulkanFence *fence, u64 timeoutN
         timeoutNanoSecs);
     switch (result) {
       case VK_SUCCESS: 
-        fence->isSignaled = TRUE; 
-        break;
+        fence->isSignaled = TRUE;
+        return TRUE;
       case VK_TIMEOUT:
         S_TraceLogWarn("VkWaitFence - Time out");
         break;
