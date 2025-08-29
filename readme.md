@@ -1,11 +1,11 @@
 > [!WARNING]
-> Development will be freezed for a while soon
+> Development will be frozen for a while soon
 
 # Ücima Game Engine
 Fully 3D (maybe 2D) Game engine with multiple graphical API support, such as Vulkan, OpenGL, DirectX11, Metal.
 
 ### In plans:
- - Implement lua support as a game programming language. And give an ability to create native games, but programmed in c.
+ - Implement lua support as a game programming language. And give an ability to create native games, but programmed in c (or maybe rust).
 
 > Current object: Fix segfault.
 > Logs:
