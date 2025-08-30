@@ -55,7 +55,7 @@ void *ualloc(u64 size, MemoryCategory memCategory) {
   stats.totalAlloc += size;
   stats.categoriedAllocations[memCategory] += size;
 
-  RUNTIMEMESSAGE("TODO: Memory alignment");
+  // TODO: Memory alignment
   void *block = PlatformAllocate(size, FALSE);
   PlatformZeroMem(block, size);
 
@@ -69,7 +69,7 @@ void ufree(void *block, u64 size, MemoryCategory memCategory) {
   stats.totalAlloc -= size;
   stats.categoriedAllocations[memCategory] -= size;
 
-  RUNTIMEMESSAGE("TODO: Memory alignment");
+  // TODO: Memory alignment
   PlatformFree(block, FALSE);
 }
 

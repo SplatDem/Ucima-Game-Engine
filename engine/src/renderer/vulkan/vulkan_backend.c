@@ -178,20 +178,22 @@ BOOLEAN InitVulkanRendererBackend(RendererBackend* backend, const char* appName,
   S_TraceLogDebug("Vulkan buffers created successfully");
 
   S_TraceLogDebug("Creating sync objects...");
-  context.imageAvailableSemaphores = da_reserve(VkSemaphore, context.swapchain.maxFramesInFlight);
-  context.queueCompleteSemaphores = da_reserve(VkSemaphore, context.swapchain.maxFramesInFlight);
-  context.inFlightFences = da_reserve(VkSemaphore, context.swapchain.maxFramesInFlight);
+  context.imageAvailableSemaphores = da_reserve(VkSemaphore, context.swapchain.imageCount);
+  context.queueCompleteSemaphores = da_reserve(VkSemaphore, context.swapchain.imageCount);
+  context.inFlightFences = da_reserve(VulkanFence, context.swapchain.maxFramesInFlight);
 
-  for (u32 i = 0; i < context.swapchain.maxFramesInFlight; ++i) {
+  for (u32 i = 0; i < context.swapchain.imageCount; ++i) {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     vkCreateSemaphore(context.device.device, &semaphoreCreateInfo, context.allocator, &context.imageAvailableSemaphores[i]);
     vkCreateSemaphore(context.device.device, &semaphoreCreateInfo, context.allocator, &context.queueCompleteSemaphores[i]);
-    VulkanCreateFence(&context, TRUE, &context.inFlightFences[i]);
 
     context.imagesInFlight = da_reserve(VulkanFence, context.swapchain.imageCount);
-    for (u32 i = 0; i < context.swapchain.imageCount; ++i)
+    for (u32 i = 0; i < context.swapchain.maxFramesInFlight; ++i)
       context.imagesInFlight[i] = 0;
   }
+
+  for (u32 i = 0; i < context.swapchain.maxFramesInFlight; ++i)
+    VulkanCreateFence(&context, TRUE, &context.inFlightFences[i]);
 
   S_TraceLogDebug("Vulkan renderer initialized successfully");
   return TRUE;
@@ -200,16 +202,14 @@ BOOLEAN InitVulkanRendererBackend(RendererBackend* backend, const char* appName,
 void DestroyVulkanRendererBackend(RendererBackend *backend) {
   vkDeviceWaitIdle(context.device.device);
 
-  RUNTIMEMESSAGE("\x1b[45mTODO: Destroy semaphores properly\x1b[0m");
   for (u8 i = 0; i < context.swapchain.maxFramesInFlight; ++i) {
-//     if (context.imageAvailableSemaphores[i]) {
-//       ERRORLETTER
-//       vkDestroySemaphore(
-//           context.device.device,
-//           context.imageAvailableSemaphores[i],
-//           context.allocator);
-//       context.imageAvailableSemaphores[i] = 0;
-//     }
+    if (context.imageAvailableSemaphores[i]) {
+      vkDestroySemaphore(
+          context.device.device,
+          context.imageAvailableSemaphores[i],
+          context.allocator);
+      context.imageAvailableSemaphores[i] = 0;
+    }
     if (context.queueCompleteSemaphores[i]) {
       vkDestroySemaphore(
           context.device.device,
@@ -219,14 +219,14 @@ void DestroyVulkanRendererBackend(RendererBackend *backend) {
     }
     VulkanDestroyFence(&context, &context.inFlightFences[i]);
   }
-//   da_destroy(context.imageAvailableSemaphores);
-//   context.imageAvailableSemaphores = 0;
-//   da_destroy(context.queueCompleteSemaphores);
-//   context.queueCompleteSemaphores = 0;
-//   da_destroy(context.inFlightFences);
-//   context.inFlightFences = 0;
-//   da_destroy(context.imagesInFlight);
-//   context.imagesInFlight = 0;
+  da_destroy(context.imageAvailableSemaphores);
+  context.imageAvailableSemaphores = 0;
+  da_destroy(context.queueCompleteSemaphores);
+  context.queueCompleteSemaphores = 0;
+  da_destroy(context.inFlightFences);
+  context.inFlightFences = 0;
+  da_destroy(context.imagesInFlight);
+  context.imagesInFlight = 0;
 
   for (u32 i = 0; i < context.swapchain.imageCount; ++i) {
     if (context.graphicsCommandBuffers[i].handle) {
@@ -297,16 +297,32 @@ BOOLEAN VulkanRendererBackendBeginFrame(RendererBackend *backend, f32 deltaTime)
     return FALSE;
   }
 
-  if (!VulkanSwapchainAcquireNextImageIndex(
-        &context,
-        &context.swapchain,
+    VkResult acquireResult = vkAcquireNextImageKHR(
+        context.device.device,
+        context.swapchain.handle,
         UINT64_MAX,
         context.imageAvailableSemaphores[context.currentFrame],
         0,
-        &context.imageIndex))
-  {
-    return FALSE;
-  }
+        &context.imageIndex);
+
+    if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR) {
+        return FALSE;
+    } else if (acquireResult != VK_SUCCESS && acquireResult != VK_SUBOPTIMAL_KHR) {
+        S_TraceLogError("Failed to acquire swapchain image: %s", VkResultToString(acquireResult, TRUE));
+        return FALSE;
+    }
+
+//   if (!VulkanSwapchainAcquireNextImageIndex(
+//         &context,
+//         &context.swapchain,
+//         UINT64_MAX,
+//         context.imageAvailableSemaphores[context.currentFrame],
+//         0,
+//         &context.imageIndex))
+//   {
+//     S_TraceLogError("Failed to acquire next image");
+//     return FALSE;
+//   }
 
   VulkanCommandBuffer *commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
   VulkanResetCommandBuffer(commandBuffer);
@@ -355,10 +371,21 @@ BOOLEAN VulkanRendererBackendEndFrame(RendererBackend *backend, f32 deltaTime) {
   VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer->handle;
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = &context.queueCompleteSemaphores[context.currentFrame];
+  
+  VkSemaphore waitSemaphores[] = {context.imageAvailableSemaphores[context.currentFrame]};
+  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
-  submitInfo.pWaitSemaphores = &context.imageAvailableSemaphores[context.currentFrame];
+  submitInfo.pWaitSemaphores = waitSemaphores;
+  submitInfo.pWaitDstStageMask = waitStages;
+
+  VkSemaphore signalSemaphores[] = {context.queueCompleteSemaphores[context.currentFrame]};
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = signalSemaphores;
+
+  // submitInfo.signalSemaphoreCount = 1;
+  // submitInfo.pSignalSemaphores = &context.queueCompleteSemaphores[context.imageIndex];
+  // submitInfo.waitSemaphoreCount = 1;
+  // submitInfo.pWaitSemaphores = &context.imageAvailableSemaphores[context.imageIndex];
   
   VkPipelineStageFlags flags[1] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.pWaitDstStageMask = flags;
