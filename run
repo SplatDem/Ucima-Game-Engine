@@ -1,0 +1,5 @@
+#!/bin/sh 
+./build-all.sh
+cd bin
+./testapp
+cd ..
